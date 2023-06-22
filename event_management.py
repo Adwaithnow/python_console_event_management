@@ -75,7 +75,10 @@ try:
           print(f"Invalid {message}. \nDate must be 24 hour format \nExample 09:00 \nPlease try again.") 
        except:
           print(f"Invalid {message}. \nDate must be 24 hour format \nExample 09:00 \nPlease try again.") 
-
+    
+    def sort_events(events):
+          # Sort the events by dayNumber.
+          return sorted(events, key=lambda event: event.dayNumber)
     def dinsertion():
         eventName=get_valid_name("Event Name")
         startHour,startMinute=get_valid_start_date("Start Time(09:00)")
@@ -98,7 +101,20 @@ try:
             deleted="Deletion Successful\n"
         print(deleted)
     
-          
+    # Function to save the timetable to a file
+    def save_timetable():
+        filename = input("Enter the file name to save the timetable: ")
+        with open(filename, "w") as file:
+            for obj in sort_events(events):
+                file.write("Start Time: {}:{}\n".format(obj.startHour,obj.startMinute))
+                file.write("End Time: {}:{}\n".format(obj.endHour,obj.endMinute))
+                file.write("Title: {}\n".format(obj.title))
+                file.write("Location: {}\n".format(obj.venue))
+                file.write("Day Number: {}\n".format(obj.dayNumber))
+                file.write("\n")
+        print("Timetable saved successfully!")      
+
+
     def display():
         if(len(events)!=0):
           print("Timetable Overview")
@@ -140,10 +156,10 @@ try:
     print("Author: Jithu Bhai")
     print("Email: jithu@dmbca.com")
     while True:
-        print("\t1.Create an event\n\t2.Delete a event\n\t3.Update an event\n\t4.Search Student Record")
+        print("\t1.Create an event\n\t2.Delete a event\n\t3.Update an event\n\t4.Save timetable to file")
         print("\t5.Dispaly Details\n\t6.Exit")
         ch=input("Enter the choice :")
-        switch={'1':dinsertion,'2':deletion,'3':update,'4':search,'5':display,'6':exit}
+        switch={'1':dinsertion,'2':deletion,'3':update,'4':save_timetable,'5':display,'6':exit}
         switch.get(ch,error)()
 except TypeError:
     print("Exception  : ",TypeError)
