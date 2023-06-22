@@ -114,6 +114,24 @@ try:
                 file.write("\n")
         print("Timetable saved successfully!")      
 
+    # Function to load the timetable from a file
+    def load_timetable():
+        filename = input("Enter the file name to save the timetable: ")
+        with open(filename, "r") as file:
+            for line in file:
+              start_time = line.strip().split(":")
+              #TODO: Save to File
+              # Print the line.
+              print(start_time)
+
+            # i = 0
+            # while i < len(lines):
+            #     start_time = tuple(map(int, lines[i+1].strip().split(":")))
+            #     end_time = tuple(map(int, lines[i+2].strip().split(":")))
+            #     title = lines[i+3].strip()
+            #     location = lines[i+4].strip()
+             
+        print("Timetable loaded successfully!")
 
     def display():
         if(len(events)!=0):
@@ -157,9 +175,9 @@ try:
     print("Email: jithu@dmbca.com")
     while True:
         print("\t1.Create an event\n\t2.Delete a event\n\t3.Update an event\n\t4.Save timetable to file")
-        print("\t5.Dispaly Details\n\t6.Exit")
+        print("\t5.Load details from file\n\t6.Dispaly Details\n\t7.Exit")
         ch=input("Enter the choice :")
-        switch={'1':dinsertion,'2':deletion,'3':update,'4':save_timetable,'5':display,'6':exit}
+        switch={'1':dinsertion,'2':deletion,'3':update,'4':save_timetable,'5':load_timetable,'6':display,'7':exit}
         switch.get(ch,error)()
 except TypeError:
     print("Exception  : ",TypeError)
