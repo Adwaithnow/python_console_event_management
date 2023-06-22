@@ -5,7 +5,6 @@ This project is a timetable management system that allows users to create, updat
 
 **Functional Requirements:**
 
--   The program must start with printing out the title and the author's name and UniSA email.
 -   The program must provide a text-based prompt or a menu so that a user can interactively perform various actions to manage the timetable, until deciding to quit.
 -   User inputs must be validated (e.g., wrong data type, out of range, or not among the provided options) and asked again with proper error messages if invalid.
 -   A user must be able to create, update, and delete a scheduled event. An event must have a title, when it starts and ends, and optionally where it is held. Identifying an event for updating or deleting it should be based on the start time of the event.
@@ -23,32 +22,7 @@ This project is a timetable management system that allows users to create, updat
 -   The system must be reliable and should not crash or lose data.
 -   The system must be secure and protect user data from unauthorized access.
 
-**Project Schedule:**
 
--   The project will be completed in 6 weeks.
--   The first week will be spent on planning and requirements gathering.
--   The second week will be spent on designing the system.
--   The third week will be spent on coding the system.
--   The fourth week will be spent on testing the system.
--   The fifth week will be spent on documenting the system.
--   The sixth week will be spent on deploying the system.
 
-**Project Budget:**
 
-The project budget is $1,000. This budget will cover the cost of software licenses, hardware, and personnel.
 
-**Project Risks:**
-
-The main risks associated with this project are:
-
--   The project may not be completed on time or within budget.
--   The system may not meet the user requirements.
--   The system may not be secure or reliable.
-
-**Project Mitigation Strategies:**
-
-The following mitigation strategies will be used to address the risks associated with this project:
-
--   The project schedule and budget will be closely monitored to ensure that the project stays on track.
--   The user requirements will be gathered and documented carefully to ensure that the system meets the needs of the users.
--   The system will be tested thoroughly to ensure that it is secure and reliable.
