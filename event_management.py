@@ -93,10 +93,10 @@ try:
         print("Successfull")
 
     def deletion():
-        startTime=input("Start Time : ")
+        startHour,startMinute=get_valid_start_date("Start Time")
         deleted="Item not found please try again\n"
         for e in events:
-          if e.startTime == startTime:
+          if e.startHour == startHour and e.startMinute == startMinute :
             events.remove(e)
             deleted="Deletion Successful\n"
         print(deleted)
@@ -149,10 +149,10 @@ try:
         no=int(input("Enter the Roll Number : "))
 
     def update():
-      startTime=input("Start Time : ")
+      startHour,startMinute=get_valid_start_date("Start Time")
       updated="Item not found please try again\n"
       for e in events:
-          if e.startTime == startTime:
+          if e.startHour == startHour and e.startMinute == startMinute :
             e.title=get_valid_name("Event Name")
             e.startHour,e.startMinute=get_valid_start_date("Start Time(09:00)")
             e.endHour,e.endMinute=get_valid_start_date("End Time(09:00)")
