@@ -1,53 +1,85 @@
 #!/bin/python
-import json #todo: remove all imports
-# simpple csv logic instead of json
-# and also invalidate all user inputs with comma
-
+# TODO invalidate all user inputs with comma
 def read_from_disk():
     try:
-        f = open('data.json')
-        d = json.load(f)
-        f.close()
-    except FileNotFoundError:
-        d={
-            "count":0,
-            "events":[]
+       with open("data.csv", "r") as f:
+        data={}
+        events = []
+        firstLine = next(f, None)
+        if firstLine is not None:
+            header=firstLine.rstrip("\n").split(",")
+            if is_valid_csv(header):
+                for line in f:
+                    record = line.rstrip("\n").split(",")
+                    start = record[0].strip()
+                    end = record[1].strip()
+                    name = record[2].strip()
+                    location = record[3].strip()
+                    events.append({
+                        header[0]: name,
+                        header[1]: start,
+                        header[2]: end,
+                        header[3]: location,
+                    })
+        else:
+            print_log("Invalid csv provided")
+        data= {
+            "count": len(events),
+            "events": events
         }
-        write_to_disk(d)
-    return d
-
-def read_csv_file(filename):
-    with open(filename, "r") as f:
-        data = []
-        for line in f:
-            record = line.split(",")
-            data.append(record)
+    except FileNotFoundError:
+        data = {
+            "count": 0,
+            "events": []
+        }
+        write_to_disk(data)
     return data
 
-def write_csv_file(filename, data):
-    with open(filename, "w") as f:
-        for record in data:
-            f.write(", ".join(record) + "\n")
-
-def create_data_file():
-    with open("data.json", "w") as f:
-        f.write("{}")
 
 def write_to_disk(data):
-    with open('data.json', 'w') as f:
-        json.dump(data, f)
+    #Extracting events from object
+    events=data["events"]
+    # Extract headers from the first object in the event
+    headers=[]
+    if(len(events)!=0):
+        headers = list(events[0].keys())
+    else:
+        headers=['start', 'end', 'name', 'location']
+    with open("data.csv", "w") as f:
+         # Write the CSV header
+        f.write(','.join(headers) + '\n')
+        for obj in events:
+                values = [str(obj[key]) for key in headers]
+                f.write(','.join(values) + '\n')
 
-def print_header(text, new_line = False):
+
+def is_valid_csv(header):
+    desiredHeader=['start', 'end', 'name', 'location']
+    if len(header)!=len(desiredHeader):
+        return False
+    for target_string in desiredHeader:
+        if target_string not in header:
+            return False
+    return True
+
+
+def print_header(text, new_line=False):
     print(('\n' if new_line else '') + f'----[ {text[:68]} ]----')
 
-def print_log(text, level = 'error', new_line = False):
+
+def print_log(text, level='error', new_line=False):
     print(('\n' if new_line else '') + f'{level}: {text}')
 
+
 def print_event_in_line(event, n):
-    print((' ' if n < 10 else '') + str(n) + ') ' + event['start'] + ' - ' + event['name'])
+    print((' ' if n < 10 else '') + str(n) + ') ' +
+          event['start'] + ' - ' + event['name'])
+
 
 def print_event_in_full(event, n):
-    print((' ' if n < 10 else '') + str(n) + ') ' + event['start'] + ' to ' + event['end'] + ' - ' + event['name'] + ('' if event['location'] == '' else ' @ ') + event['location'])
+    print((' ' if n < 10 else '') + str(n) + ') ' + event['start'] + ' to ' + event['end'] +
+          ' - ' + event['name'] + ('' if event['location'] == '' else ' @ ') + event['location'])
+
 
 def print_menu(menu_items):
     choice = -1
@@ -63,8 +95,10 @@ def print_menu(menu_items):
             choice = int(choice)
             if choice < 0 or choice > len(menu_items):
                 choice = -1
-                print_log('Choice must be between 1 to ' + str(len(menu_items)))
+                print_log('Choice must be between 1 to ' +
+                          str(len(menu_items)))
     return choice
+
 
 def is_valid_time(time):
     is_valid = True
@@ -80,17 +114,19 @@ def is_valid_time(time):
         is_valid = False
     return is_valid
 
+
 def time_to_int(time):
     return int(time[0:2] + time[3:5])
 
+
 def is_available_time(start, end, state):
     is_available = True
-    #todo: check if it si the same day too sryyy
+    # todo: check if it si the same day too sryyy
     start = time_to_int(start)
     end = time_to_int(end)
     for i in range(len(state['events'])):
-        event_start = time_to_int(state['events'][i]['start']) 
-        event_end = time_to_int(state['events'][i]['end']) 
+        event_start = time_to_int(state['events'][i]['start'])
+        event_end = time_to_int(state['events'][i]['end'])
         if start >= event_start and start < event_end:
             is_available = False
             break
@@ -101,6 +137,7 @@ def is_available_time(start, end, state):
             is_available = False
             break
     return is_available
+
 
 def handle_create(state):
     is_valid = True
@@ -126,6 +163,7 @@ def handle_create(state):
         print(name, 'added!')
     return state
 
+
 def handle_delete(state):
     print_header('Delete Event', True)
     if len(state['events']) == 0:
@@ -137,12 +175,14 @@ def handle_delete(state):
     if not choice.isnumeric():
         print_log("Must Enter a number!")
     elif int(choice) < 1 or int(choice) > len(state['events']):
-        print_log("Must Enter a value between 0 and " + str(len(state['events'])))
+        print_log("Must Enter a value between 0 and " +
+                  str(len(state['events'])))
     else:
-        choice = int(choice) -1
+        choice = int(choice) - 1
         print(state['events'][choice]['name'], 'deleted!')
         del state['events'][choice]
     return state
+
 
 def handle_update(state):
     print_header('Update Event', True)
@@ -155,9 +195,10 @@ def handle_update(state):
     if not choice.isnumeric():
         print_log("Must Enter a number!")
     elif int(choice) < 1 or int(choice) > len(state['events']):
-        print_log("Must Enter a value between 0 and " + str(len(state['events'])))
+        print_log("Must Enter a value between 0 and " +
+                  str(len(state['events'])))
     else:
-        choice = int(choice) -1
+        choice = int(choice) - 1
         print_event_in_full(state['events'][choice], choice)
         name = input('\nEvent name [empty string is not allowed]: ')
         start = input('Event start time in military time [HH:MM]: ')
@@ -172,6 +213,7 @@ def handle_update(state):
         }, choice)
         print(state['events'][choice]['name'], 'updated!')
     return state
+
 
 def handle_search(state):
     if len(state['events']) == 0:
@@ -192,12 +234,14 @@ def handle_search(state):
             print_event_in_full(state['events'][matches[i]], matches[i]+1)
     return state
 
+
 def handle_display(state):
     # todo: proper display logic with 80 char limit
     for i in range(len(state['events'])):
         print_event_in_line(state['events'][i], i+1)
     is_available_time('08 10', '09 10', state)
     return state
+
 
 def main():
     events = []
@@ -218,8 +262,8 @@ def main():
     print('Author: Jithu Bhai')
     print('Email: jithu@dmbca.com')
     # while True:
-        # t = input('tiem [HH:MM]:')
-        # print(is_valid_time(t))
+    # t = input('tiem [HH:MM]:')
+    # print(is_valid_time(t))
     while _continue:
         print('\n\n\n next iteration:', state['count'])
         choice = print_menu(menu_items)
@@ -230,6 +274,7 @@ def main():
             state = menu_items[choice-1][1](state)
             write_to_disk(state)
         state['count'] += 1
+
 
 if __name__ == '__main__':
     main()
