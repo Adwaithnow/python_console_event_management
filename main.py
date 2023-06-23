@@ -9,11 +9,11 @@ def read_from_disk():
         d = json.load(f)
         f.close()
     except FileNotFoundError:
-        create_data_file()
         d={
             "count":0,
             "events":[]
         }
+        write_to_disk(d)
     return d
 
 def create_data_file():
