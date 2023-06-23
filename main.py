@@ -16,6 +16,19 @@ def read_from_disk():
         write_to_disk(d)
     return d
 
+def read_csv_file(filename):
+    with open(filename, "r") as f:
+        data = []
+        for line in f:
+            record = line.split(",")
+            data.append(record)
+    return data
+
+def write_csv_file(filename, data):
+    with open(filename, "w") as f:
+        for record in data:
+            f.write(", ".join(record) + "\n")
+
 def create_data_file():
     with open("data.json", "w") as f:
         f.write("{}")
