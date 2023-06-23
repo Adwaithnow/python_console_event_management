@@ -4,10 +4,21 @@ import json #todo: remove all imports
 # and also invalidate all user inputs with comma
 
 def read_from_disk():
-    f = open('data.json')
-    d = json.load(f)
-    f.close()
+    try:
+        f = open('data.json')
+        d = json.load(f)
+        f.close()
+    except FileNotFoundError:
+        create_data_file()
+        d={
+            "count":0,
+            "events":[]
+        }
     return d
+
+def create_data_file():
+    with open("data.json", "w") as f:
+        f.write("{}")
 
 def write_to_disk(data):
     with open('data.json', 'w') as f:
