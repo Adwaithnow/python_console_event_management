@@ -119,12 +119,13 @@ def time_to_int(time):
     return int(time[0:2] + time[3:5])
 
 
-def is_available_time(start, end, state):
+def is_available_time(start, end, day, state):
     is_available = True
-    # todo: check if it si the same day too sryyy
     start = time_to_int(start)
     end = time_to_int(end)
     for i in range(len(state['events'])):
+        if day != state['events'][i]['day']:
+            continue
         event_start = time_to_int(state['events'][i]['start'])
         event_end = time_to_int(state['events'][i]['end'])
         if start >= event_start and start < event_end:
@@ -145,6 +146,7 @@ def handle_create(state):
     name = input('\nEvent name [empty string is not allowed]: ')
     start = input('Event start time in military time [HH:MM]: ')
     end = input('Event end time in military time [HH:MM]: ')
+    day = input('Event day [1-7]: ')
     location = input('Event location [optional]: ')
     if name.strip() == '':
         print_log('Aborting! Name cannot be empty!')
@@ -152,10 +154,21 @@ def handle_create(state):
     if not (is_valid_time(start) and is_valid_time(end)):
         print_log('Aborting! Invalid time format!')
         is_valid = False
+    if not day.strip().isdigit():
+        is_valid = False
+        print_log('Aborting! day must be a digit!')
+    else:
+        day = int(day)
+        if day < 1 or day > 7:
+            is_valid = False
+            print_log('Aborting! day must be between 1 to 7!')
+    if not is_available_time(start, end, day, state):
+        is_valid = False
+        print_log('Aborting! Selected time slot is not available!')
     if is_valid:
-        # todo: check if time is blocked
         state['events'].append({
             'name': name,
+            'day': day,
             'start': start.replace(' ', ':'),
             'end': end.replace(' ', ':'),
             'location': location.strip(),
@@ -203,8 +216,10 @@ def handle_update(state):
         name = input('\nEvent name [empty string is not allowed]: ')
         start = input('Event start time in military time [HH:MM]: ')
         end = input('Event end time in military time [HH:MM]: ')
+        day = input('Event day [1-7]: ')
         location = input('Event location [optional]: ')
         # todo: add insertion validations
+        # todo: update if not empty string
         print_event_in_full({
             'name': name,
             'start': start.replace(' ', ':'),
@@ -239,7 +254,6 @@ def handle_display(state):
     # todo: proper display logic with 80 char limit
     for i in range(len(state['events'])):
         print_event_in_line(state['events'][i], i+1)
-    is_available_time('08 10', '09 10', state)
     return state
 
 
@@ -250,7 +264,6 @@ def main():
         'count': 0,
         'events': [],
     }
-    state = read_from_disk()
     menu_items = [
         ('Create an event', handle_create),
         ('Delete a event', handle_delete),
@@ -264,6 +277,7 @@ def main():
     # while True:
     # t = input('tiem [HH:MM]:')
     # print(is_valid_time(t))
+    state = read_from_disk()
     while _continue:
         print('\n\n\n next iteration:', state['count'])
         choice = print_menu(menu_items)
