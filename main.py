@@ -1,84 +1,75 @@
 #!/bin/python
-# TODO invalidate all user inputs with comma
-def read_from_disk():
+
+def read_from_disk(file_name, headers):
+    events = []
     try:
-       with open("data.csv", "r") as f:
-        data={}
-        events = []
-        firstLine = next(f, None)
-        if firstLine is not None:
-            header=firstLine.rstrip("\n").split(",")
-            if is_valid_csv(header):
-                for line in f:
-                    record = line.rstrip("\n").split(",")
-                    start = record[0].strip()
-                    end = record[1].strip()
-                    name = record[2].strip()
-                    location = record[3].strip()
-                    events.append({
-                        header[0]: name,
-                        header[1]: start,
-                        header[2]: end,
-                        header[3]: location,
-                    })
-        else:
-            print_log("Invalid csv provided")
-        data= {
-            "count": len(events),
-            "events": events
-        }
+        with open(file_name, "r") as f:
+            line = next(f, None)
+            if not line:
+                return events
+            if set(line.rstrip("\n").split(",")) != set(headers):
+                box(' ')
+                box("Error! Invalid headers")
+                return events
+            line = next(f, None)
+            while line:
+                if line == '\n' or line.strip() == '':
+                    continue
+                event = {}
+                fields = line.rstrip('\n').split(',')
+                for i in range(len(headers)):
+                    event[headers[i]] = fields[i]
+                events.append(event)
+                line = next(f, None)
     except FileNotFoundError:
-        data = {
-            "count": 0,
-            "events": []
-        }
-        write_to_disk(data)
-    return data
+        events = []
+    return events
 
-
-def write_to_disk(data):
-    #Extracting events from object
-    events=data["events"]
-    # Extract headers from the first object in the event
-    headers=[]
-    if(len(events)!=0):
-        headers = list(events[0].keys())
-    else:
-        headers=['start', 'end', 'name', 'location']
-    with open("data.csv", "w") as f:
-         # Write the CSV header
+def write_to_disk(file_name, headers, data):
+    with open(file_name, "w") as f:
         f.write(','.join(headers) + '\n')
-        for obj in events:
-                values = [str(obj[key]) for key in headers]
-                f.write(','.join(values) + '\n')
+        for event in data:
+            values = [str(event[key]) for key in headers]
+            f.write(','.join(values) + '\n')
 
+def boxify(text, center = False, length = 80):
+    length, content, filler = length - 4, '', ' '
+    for i in range(int(len(text)/length if len(text)%length == 0 else (len(text)/length)+1)):
+        chars = text[(i * length):((i * length) + length)]
+        fill = filler * (int((length - len(chars)) / 2) if center else length - len(chars))
+        if center:
+            chars = f'|{fill} {chars} {fill}'
+            content += chars + ('|\n' if len(chars) == (length + 3) else f'{filler}|\n')
+        else:
+            content += f'| {chars} {fill}|\n'
+    return content
+def box(text, center = False, length = 80):
+    print(boxify(text, center, length), end='')
 
-def is_valid_csv(header):
-    desiredHeader=['start', 'end', 'name', 'location']
-    if len(header)!=len(desiredHeader):
-        return False
-    for target_string in desiredHeader:
-        if target_string not in header:
-            return False
-    return True
+def print_header(text, new_line=False, length = 80):
+    if new_line:
+        box(' ')
+    filler, text = '=', text[:(length - 12)]
+    fill = filler * int(((length - len(text) - 4) / 2))
+    string = f'{fill}[ {text} ]{fill}'
+    print(string + ('' if len(string) == length else filler))
+    if new_line:
+        box('  ')
 
+def print_log(text, level='error'):
+    # box(('\n' if new_line else '') + f'{level}: {text}')
+    box(f'{level}: {text}')
 
-def print_header(text, new_line=False):
-    print(('\n' if new_line else '') + f'----[ {text[:68]} ]----')
-
-
-def print_log(text, level='error', new_line=False):
-    print(('\n' if new_line else '') + f'{level}: {text}')
-
-
-def print_event_in_line(event, n):
-    print((' ' if n < 10 else '') + str(n) + ') ' +
-          event['start'] + ' - ' + event['name'])
-
-
-def print_event_in_full(event, n):
-    print((' ' if n < 10 else '') + str(n) + ') ' + event['start'] + ' to ' + event['end'] +
-          ' - ' + event['name'] + ('' if event['location'] == '' else ' @ ') + event['location'])
+def print_event(event, n, show_day = True):
+    text = str(n) + ') '
+    if show_day:
+        text += int_to_day(int(event['day'])).lower()[:3] + ' '
+    text += event['start'] + ' to '
+    text += event['end'] + ' - '
+    text += event['name']
+    if event['location'].strip() != '':
+        text += ' at [location]: ' + event['location']
+    box(text)
 
 
 def print_menu(menu_items):
@@ -86,8 +77,8 @@ def print_menu(menu_items):
     while choice == -1:
         print_header('MENU', True)
         for i in range(len(menu_items)):
-            print(f'{i+1}: {menu_items[i][0]}')
-        choice = input('Enter your choice: ')
+            box(f'{i+1}: {menu_items[i][0]}')
+        choice = input(boxify('Enter your choice: '))
         if not choice.isdigit():
             choice = -1
             print_log('Input is not a Digit!')
@@ -118,6 +109,23 @@ def is_valid_time(time):
 def time_to_int(time):
     return int(time[0:2] + time[3:5])
 
+def int_to_day(day):
+    if day == 1:
+        return 'Monday'
+    elif day == 2:
+        return 'Tuesday'
+    elif day == 3:
+        return 'Wednesday'
+    elif day == 4:
+        return 'Thursday'
+    elif day == 5:
+        return 'Friday'
+    elif day == 6:
+        return 'Saturday'
+    elif day == 7:
+        return 'Sunday'
+    else:
+        return 'invalid'
 
 def is_available_time(start, end, day, state):
     is_available = True
@@ -143,11 +151,11 @@ def is_available_time(start, end, day, state):
 def handle_create(state):
     is_valid = True
     print_header('Create New Event', True)
-    name = input('\nEvent name [empty string is not allowed]: ')
-    start = input('Event start time in military time [HH:MM]: ')
-    end = input('Event end time in military time [HH:MM]: ')
-    day = input('Event day [1-7]: ')
-    location = input('Event location [optional]: ')
+    name = input(boxify('Event name [empty string is not allowed]: '))
+    start = input(boxify('Event start time in military time [HH:MM]: '))
+    end = input(boxify('Event end time in military time [HH:MM]: '))
+    day = input(boxify('Event day [1-7 | 0 for all]: '))
+    location = input(boxify('Event location [optional]: '))
     if name.strip() == '':
         print_log('Aborting! Name cannot be empty!')
         is_valid = False
@@ -159,21 +167,38 @@ def handle_create(state):
         print_log('Aborting! day must be a digit!')
     else:
         day = int(day)
-        if day < 1 or day > 7:
+        if day < 0 or day > 7:
             is_valid = False
             print_log('Aborting! day must be between 1 to 7!')
-    if not is_available_time(start, end, day, state):
-        is_valid = False
-        print_log('Aborting! Selected time slot is not available!')
+        else:
+            if day != 0:
+                if not is_available_time(start, end, day, state):
+                    is_valid = False
+                    print_log('Aborting! Selected time slot is not available on ' + int_to_day(day))
+            else:
+                for i in range(1, 8):
+                    if not is_available_time(start, end, i, state):
+                        is_valid = False
+                        print_log('Aborting! Selected time slot is not available on ' + int_to_day(i))
     if is_valid:
-        state['events'].append({
-            'name': name,
-            'day': day,
-            'start': start.replace(' ', ':'),
-            'end': end.replace(' ', ':'),
-            'location': location.strip(),
-        })
-        print(name, 'added!')
+        if day != 0:
+            state['events'].append({
+                'name': name,
+                'day': int(day),
+                'start': start.replace(' ', ':'),
+                'end': end.replace(' ', ':'),
+                'location': location.strip(),
+            })
+        else:
+            for i in range(1, 8):
+                state['events'].append({
+                    'name': name,
+                    'day': i,
+                    'start': start.replace(' ', ':'),
+                    'end': end.replace(' ', ':'),
+                    'location': location.strip(),
+                })
+        box(name + ' added!')
     return state
 
 
@@ -183,8 +208,9 @@ def handle_delete(state):
         print_log("No Events Found!", "info")
         return state
     for i in range(len(state['events'])):
-        print_event_in_line(state['events'][i], i+1)
-    choice = input("\nEnter event number to delete: ")
+        print_event(state['events'][i], i+1)
+    box(' ')
+    choice = input(boxify("Enter event number to delete: "))
     if not choice.isnumeric():
         print_log("Must Enter a number!")
     elif int(choice) < 1 or int(choice) > len(state['events']):
@@ -192,7 +218,7 @@ def handle_delete(state):
                   str(len(state['events'])))
     else:
         choice = int(choice) - 1
-        print(state['events'][choice]['name'], 'deleted!')
+        box(state['events'][choice]['name'] + ' deleted!')
         del state['events'][choice]
     return state
 
@@ -203,8 +229,9 @@ def handle_update(state):
         print_log("No Events Found!", "info")
         return state
     for i in range(len(state['events'])):
-        print_event_in_line(state['events'][i], i+1)
-    choice = input("\nEnter event number to update: ")
+        print_event(state['events'][i], i+1)
+    box(' ')
+    choice = input(boxify("Enter event number to update: "))
     if not choice.isnumeric():
         print_log("Must Enter a number!")
     elif int(choice) < 1 or int(choice) > len(state['events']):
@@ -212,21 +239,32 @@ def handle_update(state):
                   str(len(state['events'])))
     else:
         choice = int(choice) - 1
-        print_event_in_full(state['events'][choice], choice)
-        name = input('\nEvent name [empty string is not allowed]: ')
-        start = input('Event start time in military time [HH:MM]: ')
-        end = input('Event end time in military time [HH:MM]: ')
-        day = input('Event day [1-7]: ')
-        location = input('Event location [optional]: ')
-        # todo: add insertion validations
-        # todo: update if not empty string
-        print_event_in_full({
-            'name': name,
-            'start': start.replace(' ', ':'),
-            'end': end.replace(' ', ':'),
-            'location': location.strip(),
-        }, choice)
-        print(state['events'][choice]['name'], 'updated!')
+        print_event(state['events'][choice], choice)
+        box(' ')
+        box('Enter empty string [Enter or Return key] to use previour value.')
+        box('name: ' + state['events'][choice]['name'])
+        name = input(boxify('Event name: '))
+        box('start time: ' + state['events'][choice]['start'])
+        start = input(boxify('Event start time in military time [HH:MM]: '))
+        box('end time: ' + state['events'][choice]['end'])
+        end = input(boxify('Event end time in military time [HH:MM]: '))
+        box('day: ' + state['events'][choice]['day'])
+        day = input(boxify('Event day [1-7]: '))
+        box('location: ' + state['events'][choice]['location'])
+        location = input(boxify('Event location [optional]: '))
+        if name.strip() != '':
+            state['events'][choice]['name'] = name
+        if location.strip() != '':
+            state['events'][choice]['location'] = location
+        if start.strip() != '' and is_valid_time(start):
+            state['events'][choice]['start'] = start
+        if end.strip() != '' and is_valid_time(end):
+            state['events'][choice]['end'] = end
+        if day.strip() != '' and day.strip().isdigit():
+            day = int(day.strip())
+            if day > 1 or day < 7:
+                state['events'][choice]['day'] = day
+        box(state['events'][choice]['name'] + ' updated!')
     return state
 
 
@@ -235,60 +273,68 @@ def handle_search(state):
         print_log("No Events Found!", "info")
         return state
     matches = []
-    query = input("\nEnter text to search: ")
+    box(' ')
+    query = input(boxify("Enter text to search: "))
     for i in range(len(state['events'])):
         if state['events'][i]['name'].find(query) >= 0:
             matches.append(i)
         elif state['events'][i]['location'].find(query) >= 0:
             matches.append(i)
     if len(matches) == 0:
-        print_log("No matches found!")
+        box(' ')
+        box("No matches found!")
     else:
         print_header("Search results for " + query, True)
         for i in range(len(matches)):
-            print_event_in_full(state['events'][matches[i]], matches[i]+1)
+            print_event(state['events'][matches[i]], matches[i]+1)
     return state
 
 
 def handle_display(state):
-    # todo: proper display logic with 80 char limit
+    print_header('All Events', True)
+    if len(state['events']) == 0:
+        print_log("No Events Found!", "info")
+        return state
+    days = { 1: [], 2: [], 3: [], 4: [], 5: [], 6: [], 7: [] }
     for i in range(len(state['events'])):
-        print_event_in_line(state['events'][i], i+1)
+        state['events'][i]['index'] = i + 1
+        days[int(state['events'][i]['day'])].append(state['events'][i])
+    for day in days:
+        events = sorted(days[day], key=lambda k: time_to_int(k['start']))
+        print_header(int_to_day(day))
+        for j in range(len(events)):
+            index = events[j]['index']
+            print_event(events[j], index + 1, False)
     return state
 
-
 def main():
-    events = []
-    _continue = True
     state = {
         'count': 0,
         'events': [],
     }
+    file_name = "data.csv"
     menu_items = [
-        ('Create an event', handle_create),
-        ('Delete a event', handle_delete),
+        ('Create new event', handle_create),
+        ('Delete an event', handle_delete),
         ('Update an event', handle_update),
-        ('Search Student Record', handle_search),
-        ('Dispaly Details', handle_display),
+        ('Search events', handle_search),
+        ('Dispaly all Events', handle_display),
         ('Exit', print),
     ]
     print('Author: Jithu Bhai')
     print('Email: jithu@dmbca.com')
-    # while True:
-    # t = input('tiem [HH:MM]:')
-    # print(is_valid_time(t))
-    state = read_from_disk()
+    headers = ('name', 'day', 'start', 'end', 'location')
+    state['events'] = read_from_disk(file_name, headers)
+    _continue = True
     while _continue:
-        print('\n\n\n next iteration:', state['count'])
         choice = print_menu(menu_items)
         if choice == len(menu_items):
             print_header('Thank You.', True)
             _continue = False
         else:
             state = menu_items[choice-1][1](state)
-            write_to_disk(state)
+            write_to_disk(file_name, headers, state['events'])
         state['count'] += 1
-
 
 if __name__ == '__main__':
     main()

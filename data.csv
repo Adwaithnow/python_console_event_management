@@ -1,6 +1,2 @@
-start,end,name,location
-10:00,10:30,Jithu India,India
-11:00,11:30,Jithu Aus,India
-12:00,12:30,Jithu UK,India
-13:00,13:30,Jithu China,India
-
+name,day,start,end,location
+eat,2,08:30,09:00,hall
